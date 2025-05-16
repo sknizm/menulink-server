@@ -8,6 +8,7 @@ use App\Models\Membership;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use App\Enums\MembershipStatus;
+use Illuminate\Support\Facades\Validator;
 
 class RestaurantController extends Controller
 {
@@ -107,4 +108,98 @@ class RestaurantController extends Controller
         'exists' => $exists,
     ]);
 }
+
+public function getSlugForAuthenticatedUser(Request $request)
+{
+    $user = auth()->user();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated.'
+        ], 401);
+    }
+
+    $restaurant = $user->restaurant; // if you have a relationship set up
+
+    if (!$restaurant) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Restaurant not found for this user.'
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'slug' => $restaurant->slug,
+    ]);
+}
+
+public function getRestaurantByUser(Request $request)
+{
+    $user = auth()->user();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated.'
+        ], 401);
+    }
+
+    $restaurant = $user->restaurant; // assuming hasOne relationship
+
+    if (!$restaurant) {
+        return response()->json([
+            'success' => false,
+            'message' => 'No restaurant found for this user.'
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $restaurant
+    ]);
+}
+
+
+
+public function updateRestaurant(Request $request)
+{
+    $user = auth()->user();
+
+    if (!$user) {
+        return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+    }
+
+    $restaurant = $user->restaurant;
+
+    if (!$restaurant) {
+        return response()->json(['success' => false, 'message' => 'Restaurant not found'], 404);
+    }
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'address' => 'nullable|string|max:500',
+        'whatsapp' => 'nullable|string|max:20',
+        'phone' => 'nullable|string|max:20',
+        'instagram' => 'nullable|string|max:255',
+    ]);
+
+    try {
+        $restaurant->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Restaurant updated successfully',
+            'data' => $restaurant
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Update failed',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
 }

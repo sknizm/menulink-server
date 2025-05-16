@@ -23,4 +23,8 @@ class User extends Authenticatable
             $model->id = (string) Str::uuid();
         });
     }
+    public function restaurant()
+{
+    return $this->hasOne(Restaurant::class);
+}
 }
