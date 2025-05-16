@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str; // 👈 import this
 
 class Restaurant extends Model
 {
@@ -19,6 +20,18 @@ class Restaurant extends Model
         'name', 'slug', 'description', 'logo', 'address',
         'phone', 'whatsapp', 'instagram', 'user_id'
     ];
+
+    // ✅ Automatically assign UUID when creating
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::uuid();
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {
