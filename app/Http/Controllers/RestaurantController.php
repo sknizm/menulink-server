@@ -202,4 +202,50 @@ public function updateRestaurant(Request $request)
     }
 }
 
+
+
+
+public function publicRestaurantData($slug)
+{
+    $restaurant = Restaurant::where('slug', $slug)
+        ->with(['categories.menuItems' => function ($query) {
+            $query->where('is_available', true);
+        }])
+        ->first();
+
+    if (!$restaurant) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Restaurant not found',
+        ], 404);
+    }
+
+    // Only include categories with at least one available menu item
+    $filteredCategories = $restaurant->categories
+        ->filter(fn($category) => $category->menuItems->isNotEmpty())
+        ->map(fn($category) => [
+            'name' => $category->name,
+            'menuItems' => $category->menuItems->map(fn($item) => [
+                'name' => $item->name,
+                'description' => $item->description,
+                'price' => $item->price,
+                'image' => $item->image,
+            ])->values(),
+        ])->values();
+
+    return response()->json([
+        'success' => true,
+        'restaurant' => [
+            'name' => $restaurant->name,
+            'description' => $restaurant->description,
+            'address' => $restaurant->address,
+            'phone' => $restaurant->phone,
+            'whatsapp' => $restaurant->whatsapp,
+            'instagram' => $restaurant->instagram,
+            'categories' => $filteredCategories,
+        ],
+    ]);
+}
+
+
 }
