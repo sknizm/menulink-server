@@ -43,23 +43,30 @@ class FileUploadController extends Controller
     /**
      * Delete the image based on the URL.
      */
-    public function delete(Request $request)
-    {
-        $request->validate([
-            'url' => 'required|url',
-        ]);
+   public function delete(Request $request)
+{
+    $request->validate([
+        'url' => 'required|url',
+    ]);
 
-        $url = $request->input('url');
+    $url = $request->input('url');
+    $parsedUrl = parse_url($url);
+    $relativePath = $parsedUrl['path'] ?? null;
 
-        // Extract relative path from full URL
-        $filePath = str_replace(asset(''), '', $url); // "uploads/image.jpg"
-        $fullPath = public_path($filePath);
-
-        if (File::exists($fullPath)) {
-            File::delete($fullPath);
-            return response()->json(['message' => 'Image deleted successfully.']);
-        }
-
-        return response()->json(['error' => 'File not found.'], 404);
+    if (!$relativePath) {
+        return response()->json(['error' => 'Invalid URL.'], 400);
     }
+
+    // Remove leading slash and use public_path()
+    $relativePath = ltrim($relativePath, '/');
+
+    $fullPath = public_path($relativePath);
+
+    if (File::exists($fullPath)) {
+        File::delete($fullPath);
+        return response()->json(['message' => 'Image deleted successfully.']);
+    }
+
+    return response()->json(['error' => 'File not found.'], 404);
+}
 }
