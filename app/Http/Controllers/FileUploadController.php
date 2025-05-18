@@ -43,7 +43,7 @@ class FileUploadController extends Controller
     /**
      * Delete the image based on the URL.
      */
-   public function delete(Request $request)
+  public function delete(Request $request)
 {
     $request->validate([
         'url' => 'required|url',
@@ -57,8 +57,13 @@ class FileUploadController extends Controller
         return response()->json(['error' => 'Invalid URL.'], 400);
     }
 
-    // Remove leading slash and use public_path()
+    // Remove leading slash
     $relativePath = ltrim($relativePath, '/');
+
+    // Remove the first "public/" from the path if it exists
+    if (str_starts_with($relativePath, 'public/')) {
+        $relativePath = substr($relativePath, strlen('public/'));
+    }
 
     $fullPath = public_path($relativePath);
 
