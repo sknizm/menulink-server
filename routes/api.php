@@ -32,7 +32,7 @@ Route::get('/restaurant/{slug}', [RestaurantController::class, 'publicRestaurant
 // Category
 Route::get('/menu/categories', [CategoryController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/menu/categories', [CategoryController::class, 'store'])->middleware('auth:sanctum');
-
+// hello
 // Menu Items
 
 Route::get('/menu/allmenu', [MenuController::class, 'allMenu'])->middleware('auth:sanctum');
