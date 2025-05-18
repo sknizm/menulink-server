@@ -123,5 +123,14 @@ public function update(Request $request, $id)
     return response()->json($menuItem);
 }
 
+public function show(Request $request, $id)
+{
+    $user = $request->user();
+    $restaurant = $user->restaurant;
 
+    // Find the menu item only if it belongs to the user's restaurant
+    $menuItem = $restaurant->menuItems()->where('id', $id)->firstOrFail();
+
+    return response()->json($menuItem);
+}
 }
