@@ -208,8 +208,14 @@ public function updateRestaurant(Request $request)
 public function publicRestaurantData($slug)
 {
     $restaurant = Restaurant::where('slug', $slug)
-        ->with(['categories.menuItems' => function ($query) {
-            $query->where('is_available', true);
+        ->with(['categories' => function ($query) {
+            // Order categories by created_at descending
+            $query->orderBy('created_at', 'desc')
+                ->with(['menuItems' => function ($query) {
+                    // Only available items, ordered by created_at descending
+                    $query->where('is_available', true)
+                          ->orderBy('created_at', 'desc');
+                }]);
         }])
         ->first();
 
