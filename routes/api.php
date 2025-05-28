@@ -41,9 +41,9 @@ Route::put('/menu/items/{id}', [MenuController::class, 'update'])->middleware('a
 Route::get('/menu/items/{id}', [MenuController::class, 'show'])->middleware('auth:sanctum');
 
 Route::delete('/menu/categories/{id}', [MenuController::class, 'deleteCategory'])->middleware('auth:sanctum');
-    Route::delete('/menu/items/{id}', [MenuController::class, 'deleteMenuItem'])->middleware('auth:sanctum');
+Route::delete('/menu/items/{id}', [MenuController::class, 'deleteMenuItem'])->middleware('auth:sanctum');
 
 // Upload routes
 
-    Route::post('/upload', [FileUploadController::class, 'upload'])->middleware('auth:sanctum');
-    Route::delete('/delete-image', [FileUploadController::class, 'delete'])->middleware('auth:sanctum');
+Route::post('/upload', [FileUploadController::class, 'upload'])->middleware('auth:sanctum');
+Route::delete('/delete-image', [FileUploadController::class, 'delete'])->middleware('auth:sanctum');

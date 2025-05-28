@@ -163,6 +163,7 @@ public function getRestaurantByUser(Request $request)
 
 
 
+
 public function updateRestaurant(Request $request)
 {
     $user = auth()->user();
@@ -183,6 +184,7 @@ public function updateRestaurant(Request $request)
         'whatsapp' => 'nullable|string|max:20',
         'phone' => 'nullable|string|max:20',
         'instagram' => 'nullable|string|max:255',
+        'settings' => 'nullable|array', // ✅ Validate settings if provided
     ]);
 
     try {
@@ -204,33 +206,49 @@ public function updateRestaurant(Request $request)
 
 
 
+
 public function publicRestaurantData($slug)
 {
     $restaurant = Restaurant::where('slug', $slug)
         ->with(['categories' => function ($query) {
-            // Order categories by created_at ascending
             $query->orderBy('created_at', 'asc')
                 ->with(['menuItems' => function ($query) {
-                    // Only available items, ordered by created_at ascending
                     $query->where('is_available', true)
                           ->orderBy('created_at', 'asc');
                 }]);
         }])
         ->first();
 
+    // If restaurant does not exist
     if (!$restaurant) {
         return response()->json([
             'success' => false,
-            'message' => 'Restaurant not found',
+            'slug' => false,
+            'membership' => false,
+            'message' => 'Restaurant not found.',
         ], 404);
     }
 
-    // Only include categories with at least one available menu item
-    $filteredCategories = $restaurant->categories
-        ->filter(fn($category) => $category->menuItems->isNotEmpty())
+    // Check if membership exists and is active
+    $membership = Membership::where('restaurant_id', $restaurant->id)->first();
+$isActive = $membership && $membership->status === MembershipStatus::ACTIVE;
+
+
+    if (!$isActive) {
+        return response()->json([
+            'success' => false,
+            'slug' => true,
+            'membership' => false,
+            'message' => 'Membership is not active.'
+        ], 403);
+    }
+
+    // Filter categories that have at least 1 available menu item
+    $categories = $restaurant->categories->filter(fn($category) => $category->menuItems->isNotEmpty())
         ->map(fn($category) => [
             'name' => $category->name,
             'menuItems' => $category->menuItems->map(fn($item) => [
+                'id' => $item->id,
                 'name' => $item->name,
                 'description' => $item->description,
                 'price' => $item->price,
@@ -240,6 +258,8 @@ public function publicRestaurantData($slug)
 
     return response()->json([
         'success' => true,
+        'slug' => true,
+        'membership' => true,
         'restaurant' => [
             'name' => $restaurant->name,
             'description' => $restaurant->description,
@@ -247,7 +267,8 @@ public function publicRestaurantData($slug)
             'phone' => $restaurant->phone,
             'whatsapp' => $restaurant->whatsapp,
             'instagram' => $restaurant->instagram,
-            'categories' => $filteredCategories,
+            'settings' => $restaurant->settings,
+            'categories' => $categories,
         ],
     ]);
 }

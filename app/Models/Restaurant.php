@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Str; // 👈 import this
+use Illuminate\Support\Str;
 
 class Restaurant extends Model
 {
@@ -18,10 +18,13 @@ class Restaurant extends Model
 
     protected $fillable = [
         'name', 'slug', 'description', 'logo', 'address',
-        'phone', 'whatsapp', 'instagram', 'user_id'
+        'phone', 'whatsapp', 'instagram', 'user_id', 'settings' // 👈 added 'settings'
     ];
 
-    // ✅ Automatically assign UUID when creating
+    protected $casts = [
+        'settings' => 'array', // 👈 cast settings to array automatically
+    ];
+
     protected static function boot()
     {
         parent::boot();
