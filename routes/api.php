@@ -8,6 +8,7 @@ use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FileUploadController;
+use App\Http\Controllers\MembershipController;
 
 // Auth Route
 Route::post('/signup', [AuthController::class, 'signup']);
@@ -47,3 +48,14 @@ Route::delete('/menu/items/{id}', [MenuController::class, 'deleteMenuItem'])->mi
 
 Route::post('/upload', [FileUploadController::class, 'upload'])->middleware('auth:sanctum');
 Route::delete('/delete-image', [FileUploadController::class, 'delete'])->middleware('auth:sanctum');
+
+
+
+
+// ADMIN ROUTES
+
+// membership
+ // Membership routes
+    Route::get('/memberships', [MembershipController::class, 'index'])->middleware('auth:sanctum');
+    Route::post('/memberships/check-status', [MembershipController::class, 'checkStatus'])->middleware('auth:sanctum');
+    Route::patch('/memberships/{id}', [MembershipController::class, 'update'])->middleware('auth:sanctum');
