@@ -10,43 +10,29 @@ use App\Enums\MembershipStatus;
 
 class MembershipController extends Controller
 {
-    public function index()
-    {
-        $user = Auth::user();
-
-        $memberships = Membership::with('restaurant')
-            ->whereHas('restaurant', function($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })
-            ->get()
-            ->map(function($membership) {
-                return [
-                    'id' => $membership->id,
-                    'restaurant_id' => $membership->restaurant_id,
-                    'status' => $membership->status,
-                    'startDate' => $membership->start_date->toISOString(),
-                    'endDate' => $membership->end_date->toISOString(),
-                    'restaurant' => [
-                        'id' => $membership->restaurant->id,
-                        'name' => $membership->restaurant->name,
-                        'slug' => $membership->restaurant->slug,
-                    ]
-                ];
-            });
-
-        return response()->json($memberships);
-    }
-
-
-    public function checkStatus()
+ public function index()
 {
-    $user = Auth::user();
+    $memberships = Membership::with('restaurant')->get()->map(function ($membership) {
+        return [
+            'id' => $membership->id,
+            'restaurant_id' => $membership->restaurant_id,
+            'status' => $membership->status,
+            'startDate' => $membership->start_date->toISOString(),
+            'endDate' => $membership->end_date->toISOString(),
+            'restaurant' => [
+                'id' => $membership->restaurant->id,
+                'name' => $membership->restaurant->name,
+                'slug' => $membership->restaurant->slug,
+            ],
+        ];
+    });
 
-    $memberships = Membership::with('restaurant')
-        ->whereHas('restaurant', function($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })
-        ->get();
+    return response()->json($memberships);
+}
+
+ public function checkStatus()
+{
+    $memberships = Membership::with('restaurant')->get();
 
     $updatedCount = 0;
 
@@ -66,23 +52,19 @@ class MembershipController extends Controller
 }
 
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'end_date' => 'required|date',
-        ]);
+  public function update(Request $request, $id)
+{
+    $request->validate([
+        'end_date' => 'required|date',
+    ]);
 
-        $membership = Membership::findOrFail($id);
+    $membership = Membership::findOrFail($id);
 
-        // Verify the user owns this membership's restaurant
-        if ($membership->restaurant->user_id !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+    $membership->update([
+        'end_date' => $request->end_date,
+    ]);
 
-        $membership->update([
-            'end_date' => $request->end_date,
-        ]);
+    return response()->json(['message' => 'Membership updated successfully']);
+}
 
-        return response()->json(['message' => 'Membership updated successfully']);
-    }
 }
