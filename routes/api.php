@@ -19,6 +19,10 @@ Route::post('/signout', [AuthController::class, 'signout'])->middleware('auth:sa
 
 Route::get('/user-data', [UserController::class, 'getUser'])->middleware('auth:sanctum');
 
+// Membership Route
+Route::get('/check-membership', [RestaurantController::class, 'checkMembership'])->middleware('auth:sanctum');
+
+
 // Restaurant Route
 Route::get('/restaurant-exist', [RestaurantController::class, 'restaurantExist'])->middleware('auth:sanctum');
 Route::post('/create-restaurant', [RestaurantController::class, 'createRestaurant'])->middleware('auth:sanctum');

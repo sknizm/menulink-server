@@ -274,4 +274,40 @@ $isActive = $membership && $membership->status === MembershipStatus::ACTIVE;
 }
 
 
+
+
+public function checkMembership(Request $request)
+{
+    $user = $request->user();
+
+    // Ensure user has a restaurant
+    $restaurant = $user->restaurant;
+
+    if (!$restaurant) {
+        return response()->json(['error' => 'Restaurant not found'], 404);
+    }
+
+    // Load membership relationship
+    $membership = $restaurant->membership;
+
+    if (!$membership || $membership->status !== MembershipStatus::ACTIVE) {
+        return response()->json([
+            'membership' => false
+        ]);
+    }
+
+    // Use correct field name and format date
+    $expiryDate = optional($membership->end_date)->toDateTimeString();
+
+    // Get settings safely (null coalescing in case settings is not an array)
+    $settings = is_array($restaurant->settings) ? $restaurant->settings : [];
+    $planType = $settings['planType'] ?? null;
+
+    return response()->json([
+        'membership' => true,
+        'expiry_date' => $expiryDate,
+        'planType' => $planType,
+    ]);
+}
+
 }
