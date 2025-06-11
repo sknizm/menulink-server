@@ -207,19 +207,14 @@ public function updateRestaurant(Request $request)
 
 
 
-public function publicRestaurantData($slug)
-{
-    $restaurant = Restaurant::where('slug', $slug)
-        ->with(['categories' => function ($query) {
-            $query->orderBy('created_at', 'asc')
-                ->with(['menuItems' => function ($query) {
-                    $query->where('is_available', true)
-                          ->orderBy('created_at', 'asc');
-                }]);
-        }])
-        ->first();
 
-    // If restaurant does not exist
+public function publicRestaurantData(Request $request, $slug)
+{
+    $page = $request->query('page', 1);
+    $perPage = 10;
+
+    $restaurant = Restaurant::where('slug', $slug)->first();
+
     if (!$restaurant) {
         return response()->json([
             'success' => false,
@@ -229,10 +224,8 @@ public function publicRestaurantData($slug)
         ], 404);
     }
 
-    // Check if membership exists and is active
     $membership = Membership::where('restaurant_id', $restaurant->id)->first();
-$isActive = $membership && $membership->status === MembershipStatus::ACTIVE;
-
+    $isActive = $membership && $membership->status === MembershipStatus::ACTIVE;
 
     if (!$isActive) {
         return response()->json([
@@ -243,9 +236,17 @@ $isActive = $membership && $membership->status === MembershipStatus::ACTIVE;
         ], 403);
     }
 
-    // Filter categories that have at least 1 available menu item
-    $categories = $restaurant->categories->filter(fn($category) => $category->menuItems->isNotEmpty())
-        ->map(fn($category) => [
+    $categories = $restaurant->categories()
+        ->with(['menuItems' => function ($query) use ($page, $perPage) {
+            $query->where('is_available', true)
+                  ->orderBy('created_at', 'asc')
+                  ->skip(($page - 1) * $perPage)
+                  ->take($perPage);
+        }])->get();
+
+    $filteredCategories = $categories->map(function ($category) {
+        return [
+            'id' => $category->id,
             'name' => $category->name,
             'menuItems' => $category->menuItems->map(fn($item) => [
                 'id' => $item->id,
@@ -254,7 +255,8 @@ $isActive = $membership && $membership->status === MembershipStatus::ACTIVE;
                 'price' => $item->price,
                 'image' => $item->image,
             ])->values(),
-        ])->values();
+        ];
+    });
 
     return response()->json([
         'success' => true,
@@ -268,10 +270,11 @@ $isActive = $membership && $membership->status === MembershipStatus::ACTIVE;
             'whatsapp' => $restaurant->whatsapp,
             'instagram' => $restaurant->instagram,
             'settings' => $restaurant->settings,
-            'categories' => $categories,
+            'categories' => $filteredCategories,
         ],
     ]);
 }
+
 
 
 
