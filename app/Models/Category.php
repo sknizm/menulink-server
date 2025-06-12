@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
+// app/Models/Category.php
 
 class Category extends Model
 {
@@ -15,7 +16,7 @@ class Category extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = ['name', 'description', 'restaurant_id'];
+    protected $fillable = ['name', 'description', 'restaurant_id', 'sort_order'];
 
     protected static function boot()
     {
@@ -35,6 +36,6 @@ class Category extends Model
 
     public function menuItems(): HasMany
     {
-        return $this->hasMany(MenuItem::class);
+        return $this->hasMany(MenuItem::class)->orderBy('created_at', 'desc');
     }
 }

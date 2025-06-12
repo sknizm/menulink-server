@@ -8,18 +8,42 @@ use Illuminate\Support\Facades\Storage;
 
 class MenuController extends Controller
 {
-    // Get all categories and their menu items for the authenticated user's restaurant
+
     public function allMenu(Request $request)
-    {
-        $user = $request->user();
-        $restaurantId = $user->restaurant->id;
+{
+    $user = $request->user();
+    $restaurantId = $user->restaurant->id;
 
-        $categories = Category::with(['menuItems' => function ($query) {
-            $query->orderBy('created_at', 'desc');
-        }])->where('restaurant_id', $restaurantId)->get();
+    $categories = Category::with(['menuItems' => function ($query) {
+        $query->orderBy('created_at', 'desc');
+    }])
+    ->where('restaurant_id', $restaurantId)
+    ->orderBy('sort_order')
+    ->get();
 
-        return response()->json($categories);
+    return response()->json($categories);
+}
+
+
+
+    // MenuController.php
+public function reorderCategories(Request $request)
+{
+    $user = $request->user();
+    $restaurantId = $user->restaurant->id;
+
+    $categoryIds = $request->input('category_ids', []);
+
+    foreach ($categoryIds as $index => $id) {
+        Category::where('id', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->update(['sort_order' => $index]);
     }
+
+    return response()->json(['message' => 'Category order updated']);
+}
+
+
 
     // Delete category
     public function deleteCategory(Request $request, $id)

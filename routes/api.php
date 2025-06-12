@@ -38,6 +38,8 @@ Route::get('/restaurant/{slug}', [RestaurantController::class, 'publicRestaurant
 Route::get('/menu/categories', [CategoryController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/menu/categories', [CategoryController::class, 'store'])->middleware('auth:sanctum');
 
+Route::post('/menu/categories/reorder', [MenuController::class, 'reorderCategories'])->middleware('auth:sanctum');
+
 // Menu Items
 
 Route::get('/menu/allmenu', [MenuController::class, 'allMenu'])->middleware('auth:sanctum');

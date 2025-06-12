@@ -208,10 +208,11 @@ public function updateRestaurant(Request $request)
 
 
 
+
 public function publicRestaurantData(Request $request, $slug)
 {
     $page = $request->query('page', 1);
-    $perPage = 10;
+    $perPage = 50;
 
     $restaurant = Restaurant::where('slug', $slug)->first();
 
@@ -236,13 +237,16 @@ public function publicRestaurantData(Request $request, $slug)
         ], 403);
     }
 
+    // 🟢 Use COALESCE to sort by sort_order if set, else fallback to created_at
     $categories = $restaurant->categories()
         ->with(['menuItems' => function ($query) use ($page, $perPage) {
             $query->where('is_available', true)
                   ->orderBy('created_at', 'asc')
                   ->skip(($page - 1) * $perPage)
                   ->take($perPage);
-        }])->get();
+        }])
+        ->orderByRaw('COALESCE(sort_order, 999999), created_at') // 🟢 sort_order if available, else by created_at
+        ->get();
 
     $filteredCategories = $categories->map(function ($category) {
         return [
