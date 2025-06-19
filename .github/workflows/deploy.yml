@@ -3,7 +3,7 @@ name: 🚀 Deploy to CloudPanel
 on:
   push:
     branches:
-      - main  # trigger this on every push to the main branch
+      - master  # trigger this on every push to the main branch
 
 jobs:
   deploy:
