@@ -1,0 +1,23 @@
+name: 🚀 Deploy to CloudPanel
+
+on:
+  push:
+    branches:
+      - main  # trigger this on every push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # GitHub runs this job on their Linux server
+
+    steps:
+      - name: SSH and deploy
+        uses: appleboy/ssh-action@v1.0.0  # a GitHub action that SSHs into your server
+        with:
+          host: ${{ secrets.SERVER_IP }}  # your VPS IP (we stored it as a secret)
+          username: root  # or 'nizam' if you use a non-root user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # your server's private SSH key
+          script: |
+            cd /home/nizam/htdocs/2cd.site  # navigate to your project folder
+            git pull origin main            # pull the latest code from GitHub
+            php artisan migrate --force || true  # optional: run DB migrations
+            php artisan optimize || true         # optional: optimize Laravel cache
