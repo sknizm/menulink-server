@@ -46,6 +46,7 @@ Route::get('/menu/allmenu', [MenuController::class, 'allMenu'])->middleware('aut
 Route::post('/menu/items', [MenuController::class, 'store'])->middleware('auth:sanctum');
 Route::put('/menu/items/{id}', [MenuController::class, 'update'])->middleware('auth:sanctum');
 Route::get('/menu/items/{id}', [MenuController::class, 'show'])->middleware('auth:sanctum');
+Route::patch('/menu/items/{id}/toggle-availability', [MenuController::class, 'toggleAvailability'])->middleware('auth:sanctum');
 
 Route::delete('/menu/categories/{id}', [MenuController::class, 'deleteCategory'])->middleware('auth:sanctum');
 Route::delete('/menu/items/{id}', [MenuController::class, 'deleteMenuItem'])->middleware('auth:sanctum');

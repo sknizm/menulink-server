@@ -147,6 +147,45 @@ public function update(Request $request, $id)
     return response()->json($menuItem);
 }
 
+
+
+ public function toggleAvailability(Request $request, string $id)
+    {
+        try {
+            $user = $request->user();
+            $restaurant = $user->restaurant; // Assuming user has a relationship to restaurant
+
+            // Find the menu item belonging to the authenticated restaurant
+            $menuItem = $restaurant->menuItems()->findOrFail($id);
+
+            // Validate the incoming request, expecting only 'is_available'
+            $validated = $request->validate([
+                'is_available' => 'required|boolean',
+            ]);
+
+            // Update only the 'is_available' field
+            $menuItem->update([
+                'is_available' => $validated['is_available'],
+            ]);
+
+            return response()->json([
+                'message' => 'Menu item availability updated successfully.',
+                'menuItem' => $menuItem, // Return the updated item
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation Error',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to toggle menu item availability.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 public function show(Request $request, $id)
 {
     $user = $request->user();
