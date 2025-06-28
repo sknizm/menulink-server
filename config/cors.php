@@ -1,26 +1,12 @@
 <?php
-
-
+// config/cors.php
 return [
-
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
-
-    'allowed_methods' => ['*'],
-
-    // allow exact origins – no wildcard when you use cookies
-    'allowed_origins' => [
-        'https://menulink.xyz',
-        'https://www.menulink.xyz',
-    ],
-
-    'allowed_origins_patterns' => [],
-
-    'allowed_headers' => ['*'],
-
-    'exposed_headers' => [],
-
-    'max_age' => 0,
-
-    // allow cookies / Authorization header
-    'supports_credentials' => true,
+    'paths'                 => ['*'],   // apply to every URI
+    'allowed_methods'       => ['*'],   // every verb
+    'allowed_origins'       => ['*'],   // every Origin *
+    'allowed_origins_patterns' => [],   // leave empty because we used '*'
+    'allowed_headers'       => ['*'],   // every header
+    'exposed_headers'       => [],
+    'max_age'               => 0,
+    'supports_credentials'  => false,   // MUST be false if allowed_origins = ['*']
 ];
