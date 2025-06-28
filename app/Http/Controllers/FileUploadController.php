@@ -43,35 +43,25 @@ class FileUploadController extends Controller
     /**
      * Delete the image based on the URL.
      */
-  public function delete(Request $request)
+public function delete(Request $request)
 {
     $request->validate([
         'url' => 'required|url',
     ]);
 
-    $url = $request->input('url');
-    $parsedUrl = parse_url($url);
-    $relativePath = $parsedUrl['path'] ?? null;
+    $url  = $request->input('url');
+    $path = ltrim(parse_url($url, PHP_URL_PATH) ?? '', '/'); // uploads/…
 
-    if (!$relativePath) {
-        return response()->json(['error' => 'Invalid URL.'], 400);
-    }
+    // If the public URL starts with “storage/”, strip it because the “public”
+    // disk is already configured to point to storage/app/public
+    $storagePath = preg_replace('#^storage/#', '', $path);
 
-    // Remove leading slash
-    $relativePath = ltrim($relativePath, '/');
-
-    // Remove the first "public/" from the path if it exists
-    if (str_starts_with($relativePath, 'public/')) {
-        $relativePath = substr($relativePath, strlen('public/'));
-    }
-
-    $fullPath = public_path($relativePath);
-
-    if (File::exists($fullPath)) {
-        File::delete($fullPath);
+    if (Storage::disk('public')->exists($storagePath)) {
+        Storage::disk('public')->delete($storagePath);
         return response()->json(['message' => 'Image deleted successfully.']);
     }
 
     return response()->json(['error' => 'File not found.'], 404);
 }
+
 }
