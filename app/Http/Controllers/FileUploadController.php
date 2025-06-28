@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class FileUploadController extends Controller
 {
@@ -44,42 +45,29 @@ class FileUploadController extends Controller
      * Delete the image based on the URL.
      */
 public function delete(Request $request)
-{
-    $request->validate([
-        'url' => 'required|url',
-    ]);
+    {
+        // 1️⃣  Basic validation
+        $request->validate([
+            'url' => 'required|url',
+        ]);
 
-    $url  = $request->input('url');
-    $path = ltrim(parse_url($url, PHP_URL_PATH) ?? '', '/');   // uploads/…
+        // 2️⃣  Grab just the filename (protects against “../../../” tricks)
+        $basename = basename(parse_url($request->input('url'), PHP_URL_PATH));
 
-    // 🔍 1‑line log:
-    Log::debug('DeleteImage candidate', ['relative' => $path]);
+        // 3️⃣  The one fool‑proof path: public/uploads/…
+        $fullPath = public_path("uploads/{$basename}");
 
-    /* ------------------------------------------------------------------
-       Choose the *first* location that actually exists on your server.
-    ------------------------------------------------------------------ */
-
-    $locations = [
-        // ① document‑root (works on CloudPanel/Forge/etc.)
-        realpath($_SERVER['DOCUMENT_ROOT']).DIRECTORY_SEPARATOR.$path,
-
-        // ② base_path()  → …/current/…
-        base_path($path),
-
-        // ③ public_path() → …/current/public/…
-        public_path($path),
-    ];
-
-    foreach ($locations as $fullPath) {
-        if ($fullPath && File::exists($fullPath)) {
-            Log::debug('Deleting', ['fullPath' => $fullPath]);
-            File::delete($fullPath);
-            return response()->json(['message' => 'Image deleted successfully.']);
+        // 4️⃣  Guard: file must exist
+        if (! File::exists($fullPath)) {
+            Log::warning('DeleteImage: not found', compact('fullPath'));
+            return response()->json(['error' => 'File not found.'], 404);
         }
-    }
 
-    Log::warning('File not found in any location', ['checked' => $locations]);
-    return response()->json(['error' => 'File not found.'], 404);
-}
+        // 5️⃣  Delete
+        File::delete($fullPath);
+        Log::info('DeleteImage: deleted', compact('fullPath'));
+
+        return response()->json(['message' => 'Image deleted successfully.']);
+    }
 
 }
