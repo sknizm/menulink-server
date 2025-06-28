@@ -50,17 +50,35 @@ public function delete(Request $request)
     ]);
 
     $url  = $request->input('url');
-    $path = ltrim(parse_url($url, PHP_URL_PATH) ?? '', '/'); // uploads/…
+    $path = ltrim(parse_url($url, PHP_URL_PATH) ?? '', '/');   // uploads/…
 
-    // If the public URL starts with “storage/”, strip it because the “public”
-    // disk is already configured to point to storage/app/public
-    $storagePath = preg_replace('#^storage/#', '', $path);
+    // 🔍 1‑line log:
+    Log::debug('DeleteImage candidate', ['relative' => $path]);
 
-    if (Storage::disk('public')->exists($storagePath)) {
-        Storage::disk('public')->delete($storagePath);
-        return response()->json(['message' => 'Image deleted successfully.']);
+    /* ------------------------------------------------------------------
+       Choose the *first* location that actually exists on your server.
+    ------------------------------------------------------------------ */
+
+    $locations = [
+        // ① document‑root (works on CloudPanel/Forge/etc.)
+        realpath($_SERVER['DOCUMENT_ROOT']).DIRECTORY_SEPARATOR.$path,
+
+        // ② base_path()  → …/current/…
+        base_path($path),
+
+        // ③ public_path() → …/current/public/…
+        public_path($path),
+    ];
+
+    foreach ($locations as $fullPath) {
+        if ($fullPath && File::exists($fullPath)) {
+            Log::debug('Deleting', ['fullPath' => $fullPath]);
+            File::delete($fullPath);
+            return response()->json(['message' => 'Image deleted successfully.']);
+        }
     }
 
+    Log::warning('File not found in any location', ['checked' => $locations]);
     return response()->json(['error' => 'File not found.'], 404);
 }
 
