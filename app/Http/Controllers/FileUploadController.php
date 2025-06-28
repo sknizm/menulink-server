@@ -30,7 +30,7 @@ class FileUploadController extends Controller
         $fileName = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
         $file->move($uploadFolder, $fileName);
 
-        $publicUrl = asset("public/uploads/{$fileName}");
+        $publicUrl = asset("uploads/{$fileName}");
 
         return response()->json([
             'url' => $publicUrl,
