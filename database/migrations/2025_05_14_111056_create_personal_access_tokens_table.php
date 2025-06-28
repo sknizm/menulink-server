@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->bigIncrements('id'); // ✅ BIGINT UNSIGNED AUTO_INCREMENT
             $table->string('name');
-            $table->text('token')->unique();
+            $table->string('token', 64)->unique();
             $table->uuidMorphs('tokenable'); // tokenable_id (UUID) + tokenable_type + index
             $table->text('abilities')->nullable();
             $table->timestamp('last_used_at')->nullable();
