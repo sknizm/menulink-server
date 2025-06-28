@@ -15,6 +15,11 @@ Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/signin', [AuthController::class, 'signin']);
 Route::post('/signout', [AuthController::class, 'signout'])->middleware('auth:sanctum');
 
+// Otp
+Route::post('/user/generate-otp', [AuthController::class, 'generateOtp']);
+Route::post('/user/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/user/reset-password', [AuthController::class, 'resetPassword']);
+
 // User Route
 
 Route::get('/user-data', [UserController::class, 'getUser'])->middleware('auth:sanctum');
